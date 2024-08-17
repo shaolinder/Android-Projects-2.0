@@ -1,0 +1,343 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, TextInput, Button } from 'react-native';
+
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [people, setPeople] = useState([
+    { name: 'Alpha', course: 'BSCS', level: '4', key: '1' },
+    { name: 'Bravo', course: 'BSIT', level: '2', key: '2' },
+    { name: 'Charlie', course: 'BSCS', level: '3', key: '3' },
+    { name: 'Delta', course: 'BSCS', level: '1', key: '4' },
+    { name: 'Echo', course: 'BSIT', level: '3', key: '5' },
+    { name: 'Foxtrot', course: 'BSCS', level: '4', key: '6' },
+    { name: 'Golf', course: 'BSIT', level: '2', key: '7' },
+    { name: 'Hotel', course: 'BSCS', level: '4', key: '8' },
+    { name: 'India', course: 'BSCS', level: '3', key: '9' },
+    { name: 'Juliet', course: 'BSCS', level: '2', key: '10' },
+  ]);
+
+  const [newPersonName, setNewPersonName] = useState('');
+  const [newPersonCourse, setNewPersonCourse] = useState('');
+  const [newPersonLevel, setNewPersonLevel] = useState('');
+  const [keyCounter, setKeyCounter] = useState(2);
+
+  const [editingPerson, setEditingPerson] = useState(null);
+  const [editPersonName, setEditPersonName] = useState('');
+  const [editPersonCourse, setEditPersonCourse] = useState('');
+  const [editPersonLevel, setEditPersonLevel] = useState('');
+  const [isEditing, setIsEditing] = useState(false); // Add this state
+  const [isAdding, setIsAdding] = useState(false); // Add this state
+
+  const handlePersonPress = (person) => {
+    Alert.alert(
+      person.name,
+      `Key: ${person.key} \nCourse: ${person.course}\nLevel: ${person.level}`,
+    );
+  };
+
+  const handleSearchChange = (text) => {
+    setSearchQuery(text);
+  };
+
+  const handleAddPerson = () => {
+    if (newPersonName && newPersonCourse && newPersonLevel) {
+      const newPerson = {
+        name: newPersonName,
+        course: newPersonCourse,
+        level: newPersonLevel,
+        key: (people.length + 1).toString(),  // Generating a unique key
+      };
+      setPeople((prevPeople) => [...prevPeople, newPerson]);
+      setNewPersonName('');
+      setNewPersonCourse('');
+      setNewPersonLevel('');
+      setKeyCounter((prevCounter) => prevCounter + 1);
+      setIsAdding(false);
+    } else {
+      Alert.alert('Error', 'Please fill in all fields.');
+    }
+  };
+
+  const handleLongPress = (person) => {
+    Alert.alert(
+      'Options',
+      'What would you like to do?',
+      [
+        {
+          text: 'Edit',
+          onPress: () => handleEditPerson(person),
+        },
+        {
+          text: 'Delete',
+          onPress: () => handleRemovePerson(person),
+          style: 'destructive',
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleEditPerson = (person) => {
+    setEditingPerson(person);
+    setEditPersonName(person.name);
+    setEditPersonCourse(person.course);
+    setEditPersonLevel(person.level);
+    setIsEditing(true); // Set editing state to true
+  };
+
+  const handleUpdatePerson = () => {
+    if (editPersonName && editPersonCourse && editPersonLevel) {
+      const updatedPeople = people.map((person) =>
+        person.key === editingPerson.key
+          ? { ...person, name: editPersonName, course: editPersonCourse, level: editPersonLevel }
+          : person
+      );
+      setPeople(updatedPeople);
+      setEditingPerson(null);
+      setIsEditing(false); // Set editing state to false after updating
+    } else {
+      Alert.alert('Error', 'Please fill in all fields.');
+    }
+  };
+
+  const handleCancel = () => {
+    setEditPersonName(''); // Reset input fields
+    setEditPersonCourse('');
+    setEditPersonLevel('');
+    setIsEditing(false); // Set editing state to false
+  };
+
+  const handleRemovePerson = (person) => {
+    setPeople((prevPeople) => prevPeople.filter((p) => p.key !== person.key));
+  };
+
+  const filteredPeople = people.filter(
+    (person) =>
+      person.name.toLowerCase().includes(searchQuery.toLowerCase()) 
+  );
+
+  return (
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        {!isEditing && (
+          <View>
+            {!isAdding && (
+              <View style={styles.searchRow}>
+                <TextInput
+                  style={styles.search}
+                  placeholder="Search"
+                  placeholderTextColor="black"
+                  value={searchQuery}
+                  onChangeText={handleSearchChange}
+                />
+                <Button
+                title="Add Data"
+                onPress={() => setIsAdding(true)} // Set isAdding to true when Add Data button is pressed
+                color="#333"
+                titleStyle={{ color: '#FFF' }}
+              />  
+              </View>
+            )}
+            {isAdding && (
+              <View>
+                <Text style={styles.header}>Add Person</Text>
+                <View style={styles.formRow}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Name"
+                    value={newPersonName}
+                    onChangeText={(text) => setNewPersonName(text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Course"
+                    value={newPersonCourse}
+                    onChangeText={(text) => setNewPersonCourse(text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Level"
+                    value={newPersonLevel}
+                    onChangeText={(text) => setNewPersonLevel(text)}
+                  />
+                  <View style={styles.buttonRow}>
+                  <Button
+                    title="    Add    "
+                    onPress={handleAddPerson}
+                    color="#333"
+                    titleStyle={{ color: '#FFF' }}
+                  />
+                  <Button
+                    title="Cancel"
+                    onPress={() => setIsAdding(false)} // Set isAdding to false when Done button is pressed
+                    color="#333"
+                    titleStyle={{ color: '#FFF' }}
+                  />     
+                  </View>  
+                </View>
+              </View>
+            )}
+            <View style={styles.line}></View>
+          </View>
+        )}
+        {isEditing ? (
+          <View>
+            <Text style={styles.header}>Edit Person</Text>
+            <TextInput
+              style={styles.edit}
+              placeholder="Name"
+              value={editPersonName}
+              onChangeText={setEditPersonName}
+            />
+            <TextInput
+              style={styles.edit}
+              placeholder="Course"
+              value={editPersonCourse}
+              onChangeText={setEditPersonCourse}
+            />
+            <TextInput
+              style={styles.edit}
+              placeholder="Level"
+              value={editPersonLevel}
+              onChangeText={setEditPersonLevel}
+            />
+            <View style={styles.buttonRow}>
+              <Button
+                title="Update"
+                onPress={handleUpdatePerson}
+                color="#333"
+                titleStyle={{ color: '#FFF' }}
+              />
+              <Button
+                title="Cancel"
+                onPress={handleCancel}
+                color="#333"
+                titleStyle={{ color: '#FFF' }}
+              />
+            </View>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredPeople}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                onPress={() => handlePersonPress(item)}
+                onLongPress={() => handleLongPress(item)} 
+                style={styles.card}>
+                <Text style={styles.person}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.key}
+          />
+        )}
+      </View>
+    </View>
+  );
+}
+
+
+const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#F8F8F8',
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  title: {
+    fontSize: 28,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    padding: 10,
+  },
+  person: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  card: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 8,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    justifyContent: 'center',
+  },
+  formRow: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'left',
+    marginBottom: 10,
+    padding: 10,
+    borderColor: '#888888',
+    borderWidth:1,
+  },
+  search: {
+    borderWidth: 1,
+    borderColor: '#777',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flex: 1,
+    borderRadius: 5,
+    marginRight: 10,
+    color: '#333',
+  },
+  input: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#777',
+    borderRadius: 5,
+    padding: 5,
+  },
+  edit: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#777',
+    borderRadius: 5,
+    padding: 5,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    alignContent: 'right',
+  },
+  header: {
+    fontSize: 20,
+    textAlign: 'Left',
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  line: {
+    backgroundColor:'black',
+    padding: 2,
+    marginBottom: 10,
+  }
+});

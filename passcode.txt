@@ -1,0 +1,176 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+
+export default function App() {
+  const [passkey, setPasskey] = useState('');
+  const [passkeyVisible, setPasskeyVisible] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  const handleButtonPress = (value) => {
+    setPasskey(prevPasskey => prevPasskey + value);
+  };
+
+  const handleClearPress = () => {
+    setPasskey('');
+  };
+
+  const handleDeletePress = () => {
+    setPasskey(prevPasskey => prevPasskey.slice(0, -1));
+  };
+
+  const handleEnterPress = () => {
+    //console.log("Enter button pressed");
+    if (passkey === "21553292") {
+      setLoginSuccess(true);
+      setPasskey('');
+      Alert.alert(
+        "Login Successful",
+        "You have successfully logged in.",
+        [
+          { text: "OK", onPress: () => console.log("OK Pressed") }
+        ]
+      );
+    }else {
+      setPasskey('');
+      setLoginSuccess(false);
+      Alert.alert(
+        "Login Failed",
+        "Invalid password. Please try again.",
+        [
+          { text: "OK", onPress: () => console.log("OK Pressed") }
+        ]
+      );
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
+      <View style={styles.passwordRow}>
+      <View style={styles.passwordContainer}>
+        <Text style={styles.passwordText}>
+          {passkeyVisible ? passkey : passkey.replace(/./g, '*')}
+        </Text>
+        <TouchableOpacity onPress={handleDeletePress} style={styles.deleteButton}>
+          <Text style={styles.deleteButtonText}>←</Text>
+        </TouchableOpacity>
+      </View>
+      </View>
+      <TouchableOpacity onPress={() => setPasskeyVisible(!passkeyVisible)}>
+        <Text style={styles.visibilityToggle}>
+          {passkeyVisible ? 'Hide' : 'Show'} Passcode
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.buttonRow}>
+        <Button title="1" onPress={() => handleButtonPress("1")} />
+        <Button title="2" onPress={() => handleButtonPress("2")} />
+        <Button title="3" onPress={() => handleButtonPress("3")} />
+      </View>
+      <View style={styles.buttonRow}>
+        <Button title="4" onPress={() => handleButtonPress("4")} />
+        <Button title="5" onPress={() => handleButtonPress("5")} />
+        <Button title="6" onPress={() => handleButtonPress("6")} />
+      </View>
+      <View style={styles.buttonRow}>
+        <Button title="7" onPress={() => handleButtonPress("7")} />
+        <Button title="8" onPress={() => handleButtonPress("8")} />
+        <Button title="9" onPress={() => handleButtonPress("9")} />
+      </View>
+      <View style={styles.buttonRow}>
+        <Button title="0" onPress={() => handleButtonPress("0")} />
+      </View>
+      <View style={styles.buttonRow}>
+        <Button title="Clear" clearButton onPress={handleClearPress} />
+        <Button title="Login" loginButton onPress={handleEnterPress} />
+      </View>
+    </View>
+  );
+}
+
+const Button = ({ title, clearButton, deleteButton, loginButton, onPress }) => {
+  const buttonStyle = [
+    styles.button,
+    clearButton && styles.clearButton,
+    deleteButton && styles.deleteButton,
+    loginButton && styles.loginButton
+  ];
+
+  return (
+    <TouchableOpacity style={buttonStyle} onPress={onPress}>
+      <Text style={styles.buttonText}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F8F8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#777',
+    borderWidth: 1,
+  },
+  title: {
+    fontSize: 24,
+  },
+  passwordContainer: {
+    marginBottom: 10,
+    marginTop: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'black',
+    width: 200,
+    height: 50,
+    justifyContent: 'center',
+  },
+  passwordText: {
+    borderColor: 'black',
+    width: 200,
+    height: 40,
+    textAlign: 'center',
+    padding: 5,
+    paddingTop:10,
+    fontSize: 18,
+  },
+  visibilityToggle: {
+    marginBottom: 10,
+    color: 'blue',
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 2,
+    padding: 25,
+    borderRadius: 10,
+    backgroundColor: '#ddd',
+  },
+  clearButton: {
+    backgroundColor: '#fff',
+  },
+  deleteButton: {
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    right: 5,
+  },
+  deleteButtonText: {
+  fontSize: 30, 
+  marginBottom: 5,
+  },
+  loginButton: {
+    backgroundColor: '#00FE61',
+  },
+  buttonText: {
+    fontSize: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+},
+});

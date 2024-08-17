@@ -1,0 +1,173 @@
+const express = require("express");
+const port = 4321;
+const app = express();
+
+app.use(express.urlencoded({"extended":true}));
+app.use(express.json());
+
+const mysql = require("mysql");
+//create an instance of the mysql database connector
+const db = mysql.createPool({
+	host:'localhost',
+	user:'root',
+	password:'',
+	database:'mystudent',
+	multipleStatements:true
+});
+
+
+//route to retrieve data from database
+app.get("/students",(req,res)=>{
+	let sql = "SELECT * FROM `students`";
+	db.query(sql,(err,results,fields)=>{
+		if(err){
+			console.log("Query Error");
+			res.status(500).json(err);
+		}
+		res.status(200).json(results);
+	});
+});
+
+//route to retrieve specific data from database
+app.get("/students/:idno",(req,res)=>{
+	let id = req.params.idno;
+	let sql = "SELECT * FROM `students` WHERE `idno`=?";
+	db.query(sql,id,(err,results,fields)=>{
+		if(err){
+			console.log("Query Error");
+			res.status(500).json(err);
+		}
+		res.status(200).json(results);
+	});
+});
+
+//route to delete specific data from database
+app.delete("/students/:idno",(req,res)=>{
+	let id = req.params.idno;
+	let sql = "DELETE FROM `students` WHERE `idno`=?";
+	db.query(sql,id,(err,results,fields)=>{
+		if(err){
+			console.log("Query Error");
+			res.status(500).json(err);
+		}
+		res.status(200).json(results);
+	});
+});
+
+
+//route to add new  data to database
+app.post("/students",(req,res)=>{
+	let data = req.body;
+	let sql = "INSERT INTO `students`(`idno`,`lastname`,`firstname`,`course`,`level`) VALUES('"+data.idno+"','"+data.lastname+"','"+data.firstname+"','"+data.course+"','"+data.level+"')";
+	db.query(sql,(err,results,fields)=>{
+		if(err){
+			console.log("Query Error");
+			res.status(500).json(err);
+		}
+		res.status(200).json(results);
+	});
+});
+
+
+//route to update data to database
+app.put("/students/:idno", (req, res) => {
+    let id = req.params.idno;
+    let data = req.body;
+    let sql = "UPDATE `students` SET `lastname`=?, `firstname`=?, `course`=?, `level`=? WHERE `idno`=?";
+    let values = [data.lastname, data.firstname, data.course, data.level, id];
+    db.query(sql, values, (err, results, fields) => {
+        if (err) {
+            console.log("Query Error");
+            res.status(500).json(err);
+        }
+        res.status(200).json(results);
+    });
+});
+
+
+
+
+
+
+//http routes
+app.get("/",(req,res)=>{
+	res.send("hello world");
+});
+
+app.listen(port,()=>{
+	console.log(`listening at port ${port}`);
+});
+
+
+-------------------------------------------
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button, FlatList, StyleSheet } from 'react-native';
+import axios from 'axios';
+
+const App = () => {
+  const [students, setStudents] = useState([]);
+
+  useEffect(() => {
+    // Fetch students data from the backend when the component mounts
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      const response = await axios.get('http://your-backend-url/students');
+      setStudents(response.data);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
+
+  const deleteStudent = async (id) => {
+    try {
+      await axios.delete(`http://your-backend-url/students/${id}`);
+      // Refresh students data after deletion
+      fetchStudents();
+    } catch (error) {
+      console.error('Error deleting student:', error);
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.item}>
+      <Text>{item.firstname} {item.lastname}</Text>
+      <Button
+        title="Delete"
+        onPress={() => deleteStudent(item.idno)}
+      />
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={students}
+        renderItem={renderItem}
+        keyExtractor={item => item.idno.toString()}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingVertical: 10,
+  },
+});
+
+export default App;
+

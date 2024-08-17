@@ -1,0 +1,415 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, TextInput, Button, Image } from 'react-native';
+import Header from './components/header';
+import * as ImagePicker from "expo-image-picker";
+
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [people, setPeople] = useState([
+    
+
+  ]);
+
+  const [newPersonName, setNewPersonName] = useState('');
+  const [newPersonCourse, setNewPersonCourse] = useState('');
+  const [newPersonLevel, setNewPersonLevel] = useState('');
+  const [keyCounter, setKeyCounter] = useState(2);
+
+  const [editingPerson, setEditingPerson] = useState(null);
+  const [editPersonName, setEditPersonName] = useState('');
+  const [editPersonCourse, setEditPersonCourse] = useState('');
+  const [editPersonLevel, setEditPersonLevel] = useState('');
+  const [isEditing, setIsEditing] = useState(false); 
+  const [isAdding, setIsAdding] = useState(false); 
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  //search
+  const handleSearchChange = (text) => {
+    setSearchQuery(text);
+  };
+
+  const filteredPeople = people.filter(
+    (person) =>
+      person.name.toLowerCase().includes(searchQuery.toLowerCase()) 
+  );
+
+  //onPress
+  const handlePersonPress = (person) => {
+    Alert.alert(
+      person.name,
+      `Key: ${person.key} \nCourse: ${person.course}\nLevel: ${person.level}`,
+    );
+  };
+
+  //longpress
+  const handleLongPress = (person) => {
+    Alert.alert(
+      'Options',
+      'What would you like to do?',
+      [
+        {
+          text: 'Edit',
+          onPress: () => handleEditPerson(person),
+        },
+        {
+          text: 'Delete',
+          onPress: () => handleRemovePerson(person),
+          style: 'destructive',
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  //add item
+  const handleAddPerson = () => {
+    if (newPersonName && newPersonCourse && newPersonLevel && selectedImage) {
+      const newPerson = {
+        name: newPersonName,
+        course: newPersonCourse,
+        level: newPersonLevel,
+        key: (people.length + 1).toString(), 
+        image: selectedImage,
+      };
+      setPeople((prevPeople) => [...prevPeople, newPerson]);
+      setNewPersonName('');
+      setNewPersonCourse('');
+      setNewPersonLevel('');
+      setSelectedImage(null);
+      setKeyCounter((prevCounter) => prevCounter + 1);
+      setIsAdding(false);
+      showToast('Item added successfully!');
+    } else {
+      Alert.alert('Error', 'Please fill in all fields.');
+    }
+  };
+
+  //edit item
+  const handleEditPerson = (person) => {
+    setEditingPerson(person);
+    setEditPersonName(person.name);
+    setEditPersonCourse(person.course);
+    setEditPersonLevel(person.level);
+    setIsEditing(true); 
+  };
+  const handleUpdatePerson = () => {
+    if (editPersonName && editPersonCourse && editPersonLevel) {
+      const updatedPeople = people.map((person) =>
+        person.key === editingPerson.key
+          ? { ...person, name: editPersonName, course: editPersonCourse, level: editPersonLevel }
+          : person
+      );
+      setPeople(updatedPeople);
+      setEditingPerson(null);
+      setIsEditing(false);
+      showToast('Item updated successfully!');
+    } else {
+      Alert.alert('Error', 'Please fill in all fields.');
+    }
+  };
+
+  //remove item
+  const handleRemovePerson = (person) => {
+    setPeople((prevPeople) => prevPeople.filter((p) => p.key !== person.key));
+    showToast('Item deleted!');
+  };
+  
+  //cancel button
+  const handleCancel = () => {
+    setEditPersonName(''); 
+    setEditPersonCourse('');
+    setEditPersonLevel('');
+    setIsEditing(false); 
+  };
+
+  //notif in every move
+  const showToast = (message) => {
+    alert(message);
+  };
+
+  //add image
+  const openImagePicker = async () => {
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+  });
+
+  if (!result.cancelled) {
+    if (result.uri) {
+      // If 'uri' is available, it's a mobile device
+      setSelectedImage(result.uri);
+    } else if (result.assets && result.assets.length > 0) {
+      // If 'assets' array is available, it's a web browser
+      setSelectedImage(result.assets[0].uri);
+    } else {
+      // If neither 'uri' nor 'assets' are available, handle the error
+      console.error('Image URI not found in result object:', result);
+      // You might want to display an error message to the user or handle the error differently
+    }
+  }
+};
+
+
+  return (
+    <View style={styles.outerContainer}>
+      <Header/>
+      <View style={styles.container}>
+        {!isEditing && (
+          <View>
+            {!isAdding && (
+              <View>
+                <View style={styles.buttonContainer}>
+                  <Button
+                    title="Add"
+                    onPress={() => setIsAdding(true)}
+                    color="#333"
+                    titleStyle={{ color: '#FFF' }}
+                  />
+                </View>
+                <View style={styles.searchRow}>
+                  <TextInput
+                    style={styles.search}
+                    placeholder="Search"
+                    placeholderTextColor="black"
+                    value={searchQuery}
+                    onChangeText={handleSearchChange}
+                  />
+                </View>
+              </View>
+            )}
+              {isAdding && (
+                <View>
+                  <Text>Add Person</Text>
+                  <Button 
+                  title="Select Image" 
+                  onPress={openImagePicker} 
+                  color="#333"
+                  titleStyle={{ color: '#FFF' }}/>
+                  {selectedImage && (
+                    <Image
+                      source={{ uri: selectedImage }}
+                      style={{ width: 100, height: 100 }}
+                    />
+                  )}
+                  <TextInput
+                    style={styles.edit}
+                    placeholder="Name"
+                    value={newPersonName}
+                    onChangeText={(text) => setNewPersonName(text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Course"
+                    value={newPersonCourse}
+                    onChangeText={(text) => setNewPersonCourse(text)}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Level"
+                    value={newPersonLevel}
+                    onChangeText={(text) => setNewPersonLevel(text)}
+                  />
+                  <View style={styles.buttonRow}>
+                    <Button
+                      title="    Add    "
+                      onPress={handleAddPerson}
+                      color="#333"
+                      titleStyle={{ color: '#FFF' }}
+                    />
+                    <Button
+                      title="Cancel"
+                      onPress={() => setIsAdding(false)} // Set isAdding to false when Done button is pressed
+                      color="#333"
+                      titleStyle={{ color: '#FFF' }}
+                    />     
+                  </View>  
+                </View>
+            )}
+            <View style={styles.line}></View>
+          </View>
+        )}
+        {isEditing ? (
+          <View>
+            <View style={styles.formRow}>
+              <Text style={styles.header}>Edit Person</Text>
+              <TextInput
+                style={styles.edit}
+                placeholder="Name"
+                value={editPersonName}
+                onChangeText={setEditPersonName}
+              />
+              <TextInput
+                style={styles.edit}
+                placeholder="Course"
+                value={editPersonCourse}
+                onChangeText={setEditPersonCourse}
+              />
+              <TextInput
+                style={styles.edit}
+                placeholder="Level"
+                value={editPersonLevel}
+                onChangeText={setEditPersonLevel}
+              />
+              <View style={styles.buttonRow}>
+                <Button
+                  title="Update"
+                  onPress={handleUpdatePerson}
+                  color="#333"
+                  titleStyle={{ color: '#FFF' }}
+                />
+                <Button
+                  title="Cancel"
+                  onPress={handleCancel}
+                  color="#333"
+                  titleStyle={{ color: '#FFF' }}
+                />
+              </View>
+            </View>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredPeople}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                onPress={() => handlePersonPress(item)}
+                onLongPress={() => handleLongPress(item)} 
+                style={styles.card}
+              >
+                <View style={styles.cardContent}>
+                  <Image source={{uri: item.image}} style={styles.image} />
+                  <View style={styles.personInfo}>
+                    <Text style={styles.person}>{item.name}</Text>
+                    <Text>{item.course}</Text>
+                    <Text>{item.level}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </View>
+    </View>
+  );
+}
+
+
+const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#F8F8F8',
+    paddingTop: 80,
+    paddingBottom: 20,
+    paddingHorizontal: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    padding: 10,
+  },
+  person: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  card: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 8,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    justifyContent: 'center',
+    marginStart: 5,
+  },
+  formRow: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'left',
+    marginBottom: 10,
+    marginTop: 50,
+    padding: 10,
+    borderColor: '#888888',
+    borderWidth:1,
+  },
+  search: {
+    borderWidth: 1,
+    borderColor: '#777',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flex: 1,
+    borderRadius: 5,
+    marginRight: 10,
+    color: '#333',
+  },
+  input: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#777',
+    borderRadius: 5,
+    padding: 5,
+  },
+  edit: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#777',
+    borderRadius: 5,
+    padding: 5,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    alignContent: 'right',
+  },
+  header: {
+    fontSize: 20,
+    textAlign: 'Left',
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  line: {
+    backgroundColor:'#333',
+    padding: 2,
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    marginRight: 10,
+    marginBottom:10,
+    alignSelf: 'flex-end',
+    width: 100,
+  },
+  image: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  personInfo: {
+    flex: 1,
+  },
+});

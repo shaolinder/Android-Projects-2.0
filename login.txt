@@ -1,0 +1,112 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+
+export default function App() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginMessage, setLoginMessage] = useState('');
+
+  const handleLogin = () => {
+    if (username === '' || password === ''){
+      setLoginMessage('Please fill all fields.');
+    }
+    else if (username === 'admin' && password === 'user') {
+      setLoginMessage('Login Successful.\nWelcome, admin!');
+    } else {
+      setLoginMessage('Login Failed.\nIncorrect username or password.');
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.border}>
+        <View style={styles.header}>
+          <Text>Username:</Text>
+          <TextInput
+            style={styles.input}
+            value={username}
+            onChangeText={text => setUsername(text)}
+            placeholder="Enter username"
+          />
+          <Text>Password:</Text>
+          <View style={styles.passwordInputContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              value={password}
+              onChangeText={text => setPassword(text)}
+              secureTextEntry={!showPassword}
+              placeholder="Enter password"
+            />
+            <MaterialIcons 
+              name={showPassword ? 'visibility-off' : 'visibility'}
+              size={24}
+              color="black"
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            />
+          </View>
+          <Button
+            title="Login"
+            onPress={handleLogin}
+            style={styles.button} // Style for the button
+          />
+          <View style={styles.footer}>
+            <Text style={[styles.loginMessage, {textAlign: 'center'}]}>{loginMessage}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#89CFF0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  border: {
+    backgroundColor: '#17202A',
+    padding: 10,
+  },
+  header: {
+    backgroundColor: '#F0FFFF',
+    padding: 20,
+  },
+  footer: {
+    backgroundColor: '#F0FFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#777',
+    padding: 8,
+    margin: 10,
+    width: 200,
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 15,
+  },
+  button: {
+    fontSize: 12, 
+    alignItems: 'center',
+  },
+  loginMessage: {
+    marginTop: 20,
+    fontSize: 16,
+    color: 'red',
+    textAlign: 'center',
+  },
+});
